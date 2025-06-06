@@ -12,7 +12,7 @@ app.use(
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // React dev server
+    origin: "*",
   },
 });
 
@@ -42,7 +42,7 @@ io.on("connection", (socket) => {
     socket.lng = lng;
     const onlineDrivers = getOnlineDrivers();
     console.log(onlineDrivers);
-    
+
     io.emit("driver:update", onlineDrivers);
   });
 
