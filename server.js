@@ -16,21 +16,39 @@ const io = new Server(server, {
   },
 });
 
-let drivers = {}; // store driverId => { lat, lng }
+const getOnlineDrivers = () => {
+  let drivers = [];
+  const socketIds = [...io.sockets.adapter.sids.keys()];
+
+  for (const socketId of socketIds) {
+    const socket = io.sockets.sockets.get(socketId);
+
+    drivers.push({
+      id: socket.id,
+      lat: socket.lat,
+      lng: socket.lng,
+    });
+  }
+  return drivers;
+};
+// store driverId => { lat, lng }
 
 io.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
 
   socket.on("driver:location", (data) => {
-    console.log(data);
-
-    const { driverId, lat, lng } = data;
-    drivers[driverId] = { lat, lng };
-    io.emit("driver:update", { driverId, lat, lng });
+    const { lat, lng } = data;
+    socket.lat = lat;
+    socket.lng = lng;
+    const onlineDrivers = getOnlineDrivers();
+    console.log(onlineDrivers);
+    
+    io.emit("driver:update", onlineDrivers);
   });
 
   socket.on("disconnect", () => {
     console.log("Socket disconnected:", socket.id);
+    io.emit("driver:update", getOnlineDrivers());
   });
 });
 
